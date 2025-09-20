@@ -1,0 +1,64 @@
+image:
+  repository: ivan150/pedidos-api
+  tag: "0.1.3"
+  pullPolicy: IfNotPresent
+
+replicaCount: 2
+
+service:
+  type: ClusterIP
+  port: 8080
+
+ingress:
+  enabled: true
+  className: nginx
+  hosts:
+    - host: 24.199.78.153.nip.io
+      paths:
+        - path: /api
+          pathType: Prefix
+  tls: []
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 256Mi
+  limits:
+    cpu: 500m
+    memory: 512Mi
+
+hpa:
+  enabled: true
+  minReplicas: 2
+  maxReplicas: 5
+  targetCPUUtilizationPercentage: 80
+
+config:
+  SPRING_PROFILES_ACTIVE: "default"
+  SERVER_PORT: "8080"
+  SPRING_DATASOURCE_URL: "jdbc:postgresql://pedido-app-postgresql:5432/pedidos?sslmode=disable"
+
+secrets:
+  DB_USERNAME: ""
+  DB_PASSWORD: ""
+
+db:
+  enabled: true
+  host: ""         # Si usas una DB externa, coloca el host aquí
+  port: 5432
+  name: pedidos
+  username: pedidos
+  password: pedidos123
+  sslMode: disable
+
+# Valores para la dependencia de Bitnami PostgreSQL cuando se habilite db.enabled=true
+postgresql:
+  auth:
+    username: pedidos
+    password: pedidos123
+    database: pedidos
+  primary:
+    persistence:
+      enabled: true
+      size: 8Gi
+      storageClass: do-block-storage
