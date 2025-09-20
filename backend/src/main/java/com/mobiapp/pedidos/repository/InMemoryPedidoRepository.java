@@ -1,6 +1,7 @@
 package com.mobiapp.pedidos.repository;
 
 import com.mobiapp.pedidos.domain.Pedido;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Repository;
 
 import java.util.Map;
@@ -8,6 +9,7 @@ import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Repository
+@Profile("inmemory")
 public class InMemoryPedidoRepository implements PedidoRepository {
     private final Map<String, Pedido> storage = new ConcurrentHashMap<>();
 

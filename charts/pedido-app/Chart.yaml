@@ -1,0 +1,12 @@
+apiVersion: v2
+name: pedido-app
+description: Chart de Helm para la API de pedidos (Spring Boot)
+type: application
+version: 0.1.0
+appVersion: "0.1.0"
+
+dependencies:
+  - name: postgresql
+    version: 15.5.21
+    repository: https://charts.bitnami.com/bitnami
+    condition: db.enabled
