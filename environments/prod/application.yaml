@@ -1,0 +1,27 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: pedido-app
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/ivanlozanoq/proyecto-mobiapp.git
+    targetRevision: main
+    path: charts/pedido-app
+    helm:
+      values: |
+        image:
+          repository: ivan150/pedidos-api
+          tag: "0.1.1"
+        db:
+          enabled: false
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: pedidos
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
