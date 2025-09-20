@@ -1,0 +1,115 @@
+pipeline {
+  agent {
+    kubernetes {
+      defaultContainer 'git'
+      yaml """
+apiVersion: v1
+kind: Pod
+spec:
+  containers:
+    - name: kaniko
+      image: gcr.io/kaniko-project/executor:v1.23.2-debug
+      command:
+        - cat
+      tty: true
+      volumeMounts:
+        - name: kaniko-secret
+          mountPath: /kaniko/.docker
+    - name: git
+      image: alpine/git:2.46.0
+      command:
+        - cat
+      tty: true
+  volumes:
+    - name: kaniko-secret
+      emptyDir: {}
+"""
+    }
+  }
+
+  parameters {
+    string(name: 'APP_VERSION', defaultValue: '0.1.4', description: 'Nueva versión SemVer (x.y.z), NO usar latest')
+  }
+
+  environment {
+    IMAGE_REPO = 'ivan150/pedidos-api'
+    CHART_VALUES = 'charts/pedido-app/values.yaml'
+  }
+
+  stages {
+    stage('Validar versión') {
+      steps {
+        script {
+          if (!(params.APP_VERSION ==~ /^(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)$/)) {
+            error "APP_VERSION debe ser SemVer x.y.z (ej. 0.1.4). Valor recibido: ${params.APP_VERSION}"
+          }
+          if (params.APP_VERSION == 'latest') {
+            error 'No se permite usar la etiqueta mutable latest'
+          }
+        }
+      }
+    }
+
+    stage('Configurar credenciales Docker para Kaniko') {
+      steps {
+        container('kaniko') {
+          withCredentials([usernamePassword(credentialsId: 'dockerhub-credentials', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
+            sh '''
+              AUTH=$(printf '%s' "$DOCKER_USER:$DOCKER_PASS" | base64 | tr -d '\n')
+              mkdir -p /kaniko/.docker
+              cat > /kaniko/.docker/config.json <<EOF
+              {"auths":{"https://index.docker.io/v1/":{"auth":"${AUTH}"}}}
+EOF
+              chmod 600 /kaniko/.docker/config.json
+            '''
+          }
+        }
+      }
+    }
+
+    stage('Build & Push (Kaniko)') {
+      steps {
+        container('kaniko') {
+          sh '''
+            /kaniko/executor \
+              --context $WORKSPACE \
+              --dockerfile backend/Dockerfile \
+              --destination ${IMAGE_REPO}:${APP_VERSION} \
+              --cleanup
+          '''
+        }
+      }
+    }
+
+    stage('Bump image.tag en Helm values') {
+      steps {
+        container('git') {
+          sh '''
+            echo "Actualizando ${CHART_VALUES} a tag ${APP_VERSION}"
+            sed -E -i 's|(tag:\s*\")([^"]+)(\")|\\1'"${APP_VERSION}"'\\3|' ${CHART_VALUES}
+            echo 'Preview del cambio:'
+            grep -n -E 'repository:|tag:' ${CHART_VALUES} | sed -n '1,10p'
+          '''
+        }
+      }
+    }
+
+    stage('Commit & Push') {
+      steps {
+        container('git') {
+          withCredentials([usernamePassword(credentialsId: 'github-credentials', usernameVariable: 'GIT_USER', passwordVariable: 'GIT_PASS')]) {
+            sh '''
+              git config user.name "jenkins-bot"
+              git config user.email "jenkins-bot@local"
+              git add ${CHART_VALUES}
+              git commit -m "ci: bump image.tag to ${APP_VERSION}" || true
+              git remote set-url origin https://${GIT_USER}:${GIT_PASS}@github.com/ivanlozanoq/proyecto-mobiapp.git
+              git push origin HEAD:main
+            '''
+          }
+        }
+      }
+    }
+  }
+}
+
