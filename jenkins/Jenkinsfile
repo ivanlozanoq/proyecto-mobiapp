@@ -86,7 +86,9 @@ EOF
         container('git') {
           sh '''
             echo "Actualizando ${CHART_VALUES} a tag ${APP_VERSION}"
-            sed -E -i 's|(tag:\s*\")([^"]+)(\")|\\1'"${APP_VERSION}"'\\3|' ${CHART_VALUES}
+            # Reemplazo robusto evitando \s y barras invertidas problemáticas en Groovy
+            # Busca la línea con tag: "<algo>" y deja solo el nuevo valor
+            sed -E -i "s|(tag:[[:space:]]*\")[^"]+(\")[[:space:]]*$|\\1${APP_VERSION}\\2|" ${CHART_VALUES}
             echo 'Preview del cambio:'
             grep -n -E 'repository:|tag:' ${CHART_VALUES} | sed -n '1,10p'
           '''
