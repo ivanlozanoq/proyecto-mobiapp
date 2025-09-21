@@ -114,10 +114,21 @@ EOF
         container('git') {
           sh '''
             echo "Actualizando ${CHART_VALUES} a tag ${APP_VERSION}"
-            # Actualiza la línea con tag: "<valor>" en values.yaml
-            sed -E -i "s|(tag:[[:space:]]*\")[^"]+(\")[[:space:]]*$|\\1${APP_VERSION}\\2|" ${CHART_VALUES}
+            # Actualiza de forma portable (POSIX) el valor de image.tag usando awk
+            awk -v newtag="\"${APP_VERSION}\"" '
+              BEGIN{updated=0}
+              /^[[:space:]]*tag[[:space:]]*:/ {
+                # conserva el indentado y la clave exacta
+                sub(/tag[[:space:]]*:.*/, "tag: " newtag);
+                updated=1;
+                print; next
+              }
+              {print}
+              END{ if(!updated){ exit 1 } }
+            ' ${CHART_VALUES} > ${CHART_VALUES}.tmp && mv ${CHART_VALUES}.tmp ${CHART_VALUES}
+
             echo 'Preview del cambio:'
-            grep -n -E 'repository:|tag:' ${CHART_VALUES} | sed -n '1,10p'
+            grep -n -E 'repository:|tag:' ${CHART_VALUES} | sed -n '1,20p'
           '''
         }
       }
