@@ -20,6 +20,12 @@ persistence:
 nodeSelector:
   doks.digitalocean.com/node-pool: pool-9x07hzzwz
 
+service:
+  type: LoadBalancer
+  ports:
+    http: 8080
+    https: 8443
+
 # Puedes añadir tolerations/affinity si deseas aislar Jenkins en un pool específico.
 # tolerations: []
 # affinity: {}

@@ -56,14 +56,18 @@ spec:
     stage('Validar versión') {
       steps {
         script {
-          // Normaliza posibles espacios/CRLF del parámetro introducido en la UI
-          def v = (params.APP_VERSION ?: '').trim()
-          if (!(v ==~ /^(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)$/)) {
-            error "APP_VERSION debe ser SemVer x.y.z (ej. 0.1.4). Valor recibido: ${params.APP_VERSION}"
-          }
+          // Normaliza posibles espacios/CRLF y caracteres invisibles
+          def vRaw = (params.APP_VERSION ?: '')
+          def v = vRaw.trim()
+          // Elimina cualquier caracter que no sea dígito o punto (p. ej. zero-width, NBSP, etc.)
+          v = v.replaceAll('[^0-9\\.]', '')
           if (v == 'latest') {
             error 'No se permite usar la etiqueta mutable latest'
           }
+          if (!(v ==~ /^\\d+\\.\\d+\\.\\d+$/)) {
+            error "APP_VERSION debe ser SemVer x.y.z (ej. 0.1.4). Valor recibido: ${params.APP_VERSION}"
+          }
+          echo "Usando APP_VERSION normalizado: ${v}"
           // Propaga la versión normalizada al entorno para el resto de stages
           env.APP_VERSION = v
         }
