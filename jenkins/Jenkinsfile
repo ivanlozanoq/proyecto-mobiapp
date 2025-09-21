@@ -6,6 +6,8 @@ pipeline {
 apiVersion: v1
 kind: Pod
 spec:
+  nodeSelector:
+    doks.digitalocean.com/node-pool: pool-9x07hzzwz
   containers:
     - name: kaniko
       image: gcr.io/kaniko-project/executor:v1.23.2-debug
@@ -17,11 +19,11 @@ spec:
           mountPath: /kaniko/.docker
       resources:
         requests:
-          cpu: "50m"
-          memory: "192Mi"
+          cpu: "800m"
+          memory: "1Gi"
         limits:
-          cpu: "300m"
-          memory: "384Mi"
+          cpu: "2"
+          memory: "2Gi"
     - name: git
       image: alpine/git:2.46.0
       command:
@@ -29,10 +31,10 @@ spec:
       tty: true
       resources:
         requests:
-          cpu: "50m"
-          memory: "64Mi"
+          cpu: "100m"
+          memory: "128Mi"
         limits:
-          cpu: "200m"
+          cpu: "300m"
           memory: "256Mi"
   volumes:
     - name: kaniko-secret
