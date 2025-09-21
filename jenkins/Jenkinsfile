@@ -1,7 +1,14 @@
+// Jenkins pipeline declarativo para construir y publicar la imagen Docker (Kaniko en K8s),
+// actualizar el chart Helm (image.tag) y hacer push a Git para que ArgoCD sincronice.
+// Notas:
+// - Solo usa tags SemVer (sin latest), acorde a la política del proyecto.
+// - Los agentes se ejecutan en Kubernetes usando un podTemplate con contenedores 'kaniko' y 'git'.
+// - Se deja margen de recursos (>15%) y el nodeSelector apunta al pool nuevo de 4 vCPU/8GB.
 pipeline {
   agent {
     kubernetes {
       defaultContainer 'git'
+      // Definición del Pod del agente en K8s: afinidad al pool potente y recursos de cada contenedor.
       yaml """
 apiVersion: v1
 kind: Pod
@@ -9,7 +16,7 @@ spec:
   nodeSelector:
     doks.digitalocean.com/node-pool: pool-9x07hzzwz
   containers:
-    - name: kaniko
+    - name: kaniko  # Construye y publica la imagen sin Docker daemon
       image: gcr.io/kaniko-project/executor:v1.23.2-debug
       command:
         - cat
@@ -24,7 +31,7 @@ spec:
         limits:
           cpu: "2"
           memory: "2Gi"
-    - name: git
+    - name: git  # Utilidades de Git para modificar el repo y hacer commit/push
       image: alpine/git:2.45.2
       command:
         - cat
@@ -53,6 +60,7 @@ spec:
   }
 
   stages {
+    // Etapa 1: valida y normaliza APP_VERSION (SemVer x.y.z) y la propaga al entorno.
     stage('Validar versión') {
       steps {
         script {
@@ -78,6 +86,7 @@ spec:
       }
     }
 
+    // Etapa 2: escribe /kaniko/.docker/config.json con el token de Docker Hub (para push)
     stage('Configurar credenciales Docker para Kaniko') {
       steps {
         container('kaniko') {
@@ -95,6 +104,7 @@ EOF
       }
     }
 
+    // Etapa 3: construye y publica la imagen con Kaniko hacia ${IMAGE_REPO}:${APP_VERSION}
     stage('Build & Push (Kaniko)') {
       steps {
         container('kaniko') {
@@ -109,6 +119,7 @@ EOF
       }
     }
 
+    // Etapa 4: actualiza el tag en charts/pedido-app/values.yaml de forma portable con awk
     stage('Bump image.tag en Helm values') {
       steps {
         container('git') {
@@ -134,6 +145,7 @@ EOF
       }
     }
 
+    // Etapa 5: commit y push a main usando PAT de GitHub (x-access-token)
     stage('Commit & Push') {
       steps {
         container('git') {
