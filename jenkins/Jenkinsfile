@@ -154,9 +154,10 @@ EOF
                 echo "No hay cambios para commitear"
               fi
 
-              # Usa credenciales para el push
-              git remote set-url origin https://${GIT_USER}:${GIT_PASS}@github.com/ivanlozanoq/proyecto-mobiapp.git
-              git push origin HEAD:main
+              # Usa cabecera Authorization Basic para evitar problemas con caracteres especiales del token
+              git remote set-url origin https://github.com/ivanlozanoq/proyecto-mobiapp.git
+              AUTH=$(printf '%s' "${GIT_USER}:${GIT_PASS}" | base64 | tr -d '\n')
+              git -c http.extraHeader="Authorization: Basic ${AUTH}" push origin HEAD:main
             '''
           }
         }
