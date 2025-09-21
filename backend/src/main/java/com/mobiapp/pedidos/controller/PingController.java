@@ -4,11 +4,11 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/ping")
+@RequestMapping("/ping")
 public class PingController {
 
     @GetMapping
-    public ResponseEntity<String> ping() {
+    public ResponseEntity<String> ping(){
         return ResponseEntity.ok("pong");
     }
 }
