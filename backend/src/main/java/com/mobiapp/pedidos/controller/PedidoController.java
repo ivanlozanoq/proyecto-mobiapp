@@ -38,9 +38,4 @@ public class PedidoController {
         Pedido actualizado = pedidoService.actualizarEstado(id, nuevo);
         return ResponseEntity.ok(actualizado);
     }
-
-    @GetMapping("/ping")
-    public ResponseEntity<String> ping() {
-        return ResponseEntity.ok("pong");
-    }
 }
