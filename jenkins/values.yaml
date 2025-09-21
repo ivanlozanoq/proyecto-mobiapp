@@ -4,11 +4,11 @@
 
 resources:
   requests:
-    cpu: 200m
-    memory: 512Mi
+    cpu: 500m
+    memory: 1Gi
   limits:
-    cpu: 1
-    memory: 1536Mi  # 1.5Gi, mejora la fluidez de la UI sin sobrecargar el cluster
+    cpu: 2
+    memory: 3Gi  # Mejora la fluidez de la UI en el nodo 4 vCPU/8Gi, dejando holgura suficiente
 
 persistence:
   storageClass: do-block-storage
@@ -18,8 +18,12 @@ persistence:
 # el controller al nodo donde está actualmente el volumen adjunto.
 # Cuando quieras permitir que se mueva libremente, elimina este bloque.
 nodeSelector:
-  kubernetes.io/hostname: pool-ukzwzgl52-20mrr
+  doks.digitalocean.com/node-pool: pool-9x07hzzwz
 
 # Puedes añadir tolerations/affinity si deseas aislar Jenkins en un pool específico.
 # tolerations: []
 # affinity: {}
+
+extraEnvVars:
+  - name: JENKINS_JAVA_OPTIONS
+    value: "-Xms512m -Xmx2048m -Djenkins.install.runSetupWizard=false"
