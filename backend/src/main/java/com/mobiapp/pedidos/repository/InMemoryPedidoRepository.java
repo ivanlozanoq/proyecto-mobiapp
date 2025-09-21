@@ -4,6 +4,8 @@ import com.mobiapp.pedidos.domain.Pedido;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Repository;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
@@ -22,5 +24,10 @@ public class InMemoryPedidoRepository implements PedidoRepository {
     @Override
     public Optional<Pedido> findById(String id) {
         return Optional.ofNullable(storage.get(id));
+    }
+
+    @Override
+    public List<Pedido> findAll() {
+        return new ArrayList<>(storage.values());
     }
 }
