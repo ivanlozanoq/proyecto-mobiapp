@@ -5,6 +5,7 @@ import com.mobiapp.pedidos.domain.Pedido;
 import com.mobiapp.pedidos.repository.PedidoRepository;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.NoSuchElementException;
 
 @Service
@@ -30,5 +31,9 @@ public class PedidoService {
         pedido.setEstado(nuevoEstado);
         repository.save(pedido);
         return pedido;
+    }
+
+    public List<Pedido> listarTodos() {
+        return repository.findAll();
     }
 }

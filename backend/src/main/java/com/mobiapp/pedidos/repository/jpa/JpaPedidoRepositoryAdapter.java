@@ -5,6 +5,7 @@ import com.mobiapp.pedidos.repository.PedidoRepository;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 
 @Repository
@@ -25,5 +26,10 @@ public class JpaPedidoRepositoryAdapter implements PedidoRepository {
     @Override
     public Optional<Pedido> findById(String id) {
         return jpaRepository.findById(id);
+    }
+
+    @Override
+    public List<Pedido> findAll() {
+        return jpaRepository.findAll();
     }
 }

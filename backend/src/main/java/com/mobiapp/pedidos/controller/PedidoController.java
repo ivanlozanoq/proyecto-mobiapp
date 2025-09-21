@@ -6,6 +6,7 @@ import com.mobiapp.pedidos.dto.ActualizarEstadoRequest;
 import com.mobiapp.pedidos.dto.CrearPedidoRequest;
 import com.mobiapp.pedidos.service.PedidoService;
 import jakarta.validation.Valid;
+import java.util.List;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -23,6 +24,11 @@ public class PedidoController {
     public ResponseEntity<Pedido> crear(@Valid @RequestBody CrearPedidoRequest request) {
         Pedido creado = pedidoService.crearPedido(request.getDescripcion());
         return ResponseEntity.ok(creado);
+    }
+
+    @GetMapping
+    public ResponseEntity<List<Pedido>> listar() {
+        return ResponseEntity.ok(pedidoService.listarTodos());
     }
 
     @GetMapping("/{id}")

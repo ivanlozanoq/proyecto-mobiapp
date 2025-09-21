@@ -1,4 +1,4 @@
-# Proyecto MobiApp -- pedido-app
+# Proyecto MobiApp - pedido-app
 
 Este repositorio contiene:
 
