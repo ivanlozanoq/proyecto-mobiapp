@@ -5,7 +5,7 @@ plugins {
 }
 
 group = 'com.mobiapp'
-version = '0.0.1-SNAPSHOT'
+version = '0.1.9-SNAPSHOT'
 
 java {
     toolchain {

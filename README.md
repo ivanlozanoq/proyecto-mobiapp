@@ -62,5 +62,3 @@ Este repositorio contiene:
 - Ver recursos de pods/nodos (si hay metrics-server):
   - `kubectl top pods -A`
   - `kubectl top nodes`
-
-
