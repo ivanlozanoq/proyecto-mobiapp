@@ -139,10 +139,22 @@ EOF
         container('git') {
           withCredentials([usernamePassword(credentialsId: 'github-credentials', usernameVariable: 'GIT_USER', passwordVariable: 'GIT_PASS')]) {
             sh '''
+              set -e
+              cd "$WORKSPACE"
+              # Marca el workspace como seguro y configura identidad
+              git config --global --add safe.directory "$WORKSPACE" || true
               git config user.name "jenkins-bot"
               git config user.email "jenkins-bot@local"
+
+              # Añade solo si hay cambios
               git add ${CHART_VALUES}
-              git commit -m "ci: bump image.tag to ${APP_VERSION}" || true
+              if ! git diff --cached --quiet; then
+                git commit -m "ci: bump image.tag to ${APP_VERSION}"
+              else
+                echo "No hay cambios para commitear"
+              fi
+
+              # Usa credenciales para el push
               git remote set-url origin https://${GIT_USER}:${GIT_PASS}@github.com/ivanlozanoq/proyecto-mobiapp.git
               git push origin HEAD:main
             '''
