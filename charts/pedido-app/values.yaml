@@ -1,6 +1,6 @@
 image:
   repository: ivan150/pedidos-api
-  tag: 0.17.0
+  tag: 0.18.0
   pullPolicy: IfNotPresent
 
 replicaCount: 1
