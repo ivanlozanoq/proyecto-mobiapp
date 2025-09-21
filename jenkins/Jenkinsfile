@@ -154,10 +154,11 @@ EOF
                 echo "No hay cambios para commitear"
               fi
 
-              # Usa cabecera Authorization Basic para evitar problemas con caracteres especiales del token
+              # Evita prompts interactivos y empuja usando PAT recomendado por GitHub
+              export GIT_TERMINAL_PROMPT=0
               git remote set-url origin https://github.com/ivanlozanoq/proyecto-mobiapp.git
-              AUTH=$(printf '%s' "${GIT_USER}:${GIT_PASS}" | base64 | tr -d '\n')
-              git -c http.extraHeader="Authorization: Basic ${AUTH}" push origin HEAD:main
+              # Forma recomendada por GitHub: usuario x-access-token y el token como password
+              git push https://x-access-token:${GIT_PASS}@github.com/ivanlozanoq/proyecto-mobiapp.git HEAD:main
             '''
           }
         }
