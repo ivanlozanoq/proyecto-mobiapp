@@ -41,6 +41,6 @@ public class PedidoController {
 
     @GetMapping("/ping")
     public ResponseEntity<String> ping() {
-        return "pong";
+        return ResponseEntity.ok("pong");
     }
 }
