@@ -64,7 +64,9 @@ spec:
           if (v == 'latest') {
             error 'No se permite usar la etiqueta mutable latest'
           }
-          if (!(v ==~ /^\\d+\\.\\d+\\.\\d+$/)) {
+          // Nota: en regex "slashy" de Groovy no se deben duplicar las barras: 
+          // usar ^\d+\.\d+\.\d+$ como /^\d+\.\d+\.\d+$/ provocaría fallo al buscar una barra invertida literal.
+          if (!(v ==~ /^\d+\.\d+\.\d+$/)) {
             error "APP_VERSION debe ser SemVer x.y.z (ej. 0.1.4). Valor recibido: ${params.APP_VERSION}"
           }
           echo "Usando APP_VERSION normalizado: ${v}"
