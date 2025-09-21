@@ -25,7 +25,7 @@ spec:
           cpu: "2"
           memory: "2Gi"
     - name: git
-      image: alpine/git:2.46.0
+      image: alpine/git:2.45.2
       command:
         - cat
       tty: true
