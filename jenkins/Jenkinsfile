@@ -51,7 +51,8 @@ spec:
   }
 
   parameters {
-    string(name: 'APP_VERSION', defaultValue: '0.1.4', description: 'Nueva versión SemVer (x.y.z), NO usar latest')
+    // Opcional: si está vacío, el pipeline derivará la versión desde el commit de merge a main
+    string(name: 'APP_VERSION', defaultValue: '', description: 'SemVer x.y.z. Si se deja vacío en builds de main, se toma de release/x.y.z (rama origen del merge)')
   }
 
   environment {
@@ -60,25 +61,40 @@ spec:
   }
 
   stages {
-    // Etapa 1: valida y normaliza APP_VERSION (SemVer x.y.z) y la propaga al entorno.
+    // Etapa 1: obtiene la versión (desde parámetro o desde el commit de merge) y valida SemVer.
     stage('Validar versión') {
       steps {
         script {
-          // Diagnóstico: mostrar exactamente qué llega desde la UI
-          echo "APP_VERSION raw='${params.APP_VERSION}'"
-          // Normalización robusta: recorta espacios y sustituye cualquier separador por punto
-          def vRaw = (params.APP_VERSION ?: '')
-          def v = vRaw.trim()
+          // 1) Derivar versión desde el/los mensajes de commit buscando ramas release/x.y.z
+          //    Revisamos los últimos 5 commits por robustez ante squash/rebases.
+          def vParam = (params.APP_VERSION ?: '').trim()
+          def logs = sh(returnStdout: true, script: 'git log -5 --pretty=%B').trim()
+          echo "Últimos mensajes de commit (recortados): ${logs.take(200)}..."
+          def m = (logs =~ /release\/(\d+\.\d+\.\d+)/)
+          def vDerived = m.find() ? m.group(1) : ''
+          if (vDerived) {
+            echo "APP_VERSION derivado de commits: ${vDerived}"
+          } else {
+            echo "No se encontró patrón release/x.y.z en los últimos commits"
+          }
+
+          // Preferimos la versión derivada cuando hay cambios en main por webhook.
+          // Si el job es manual y se pasó APP_VERSION, se respeta; de lo contrario usamos vDerived.
+          def v = vDerived ?: vParam
+
+          // 2) Normalización robusta: recorta y sustituye separadores por punto
+          echo "APP_VERSION raw='${v ?: params.APP_VERSION}'"
+          v = (v ?: '').trim()
           v = v
-            .replaceAll('[^0-9]', '.')  // todo lo no dígito a punto (maneja guiones, comas, puntos raros)
-            .replaceAll('\\.+', '.')    // colapsa múltiples puntos en uno
-            .replaceAll('^\\.|\\.$', '') // quita punto inicial/final
+            .replaceAll('[^0-9]', '.')
+            .replaceAll('\\.+', '.')
+            .replaceAll('^\\.|\\.$', '')
           echo "APP_VERSION normalizado='${v}'"
           if (v == 'latest') {
             error 'No se permite usar la etiqueta mutable latest'
           }
           if (!(v ==~ /^\d+\.\d+\.\d+$/)) {
-            error "APP_VERSION debe ser SemVer x.y.z (ej. 0.1.4). Recibido raw='${params.APP_VERSION}', normalizado='${v}'"
+            error "APP_VERSION debe ser SemVer x.y.z (ej. 0.1.4). Recibido param='${params.APP_VERSION}', derivado='${v}'"
           }
           // Propaga la versión normalizada al entorno para el resto de stages
           env.APP_VERSION = v
