@@ -15,11 +15,25 @@ spec:
       volumeMounts:
         - name: kaniko-secret
           mountPath: /kaniko/.docker
+      resources:
+        requests:
+          cpu: "100m"
+          memory: "256Mi"
+        limits:
+          cpu: "500m"
+          memory: "512Mi"
     - name: git
       image: alpine/git:2.46.0
       command:
         - cat
       tty: true
+      resources:
+        requests:
+          cpu: "50m"
+          memory: "64Mi"
+        limits:
+          cpu: "200m"
+          memory: "256Mi"
   volumes:
     - name: kaniko-secret
       emptyDir: {}
