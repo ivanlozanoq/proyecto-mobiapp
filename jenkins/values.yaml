@@ -27,3 +27,5 @@ nodeSelector:
 extraEnvVars:
   - name: JENKINS_JAVA_OPTIONS
     value: "-Xms512m -Xmx2048m -Djenkins.install.runSetupWizard=false"
+  - name: JENKINS_URL
+    value: "http://jenkins.jenkins.svc.cluster.local/"
