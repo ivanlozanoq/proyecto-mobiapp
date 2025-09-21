@@ -68,6 +68,8 @@ spec:
           // 1) Derivar versión desde el/los mensajes de commit buscando ramas release/x.y.z
           //    Revisamos los últimos 5 commits por robustez ante squash/rebases.
           def vParam = (params.APP_VERSION ?: '').trim()
+          // Evita "dubious ownership" al leer historial en contenedor efímero
+          sh 'git config --global --add safe.directory "$WORKSPACE" || true'
           def logs = sh(returnStdout: true, script: 'git log -5 --pretty=%B').trim()
           echo "Últimos mensajes de commit (recortados): ${logs.take(200)}..."
           def m = (logs =~ /release\/(\d+\.\d+\.\d+)/)
