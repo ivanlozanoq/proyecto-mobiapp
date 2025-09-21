@@ -56,12 +56,16 @@ spec:
     stage('Validar versión') {
       steps {
         script {
-          if (!(params.APP_VERSION ==~ /^(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)$/)) {
+          // Normaliza posibles espacios/CRLF del parámetro introducido en la UI
+          def v = (params.APP_VERSION ?: '').trim()
+          if (!(v ==~ /^(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)$/)) {
             error "APP_VERSION debe ser SemVer x.y.z (ej. 0.1.4). Valor recibido: ${params.APP_VERSION}"
           }
-          if (params.APP_VERSION == 'latest') {
+          if (v == 'latest') {
             error 'No se permite usar la etiqueta mutable latest'
           }
+          // Propaga la versión normalizada al entorno para el resto de stages
+          env.APP_VERSION = v
         }
       }
     }
