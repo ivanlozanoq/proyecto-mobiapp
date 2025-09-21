@@ -56,20 +56,22 @@ spec:
     stage('Validar versión') {
       steps {
         script {
-          // Normaliza posibles espacios/CRLF y caracteres invisibles
+          // Diagnóstico: mostrar exactamente qué llega desde la UI
+          echo "APP_VERSION raw='${params.APP_VERSION}'"
+          // Normalización robusta: recorta espacios y sustituye cualquier separador por punto
           def vRaw = (params.APP_VERSION ?: '')
           def v = vRaw.trim()
-          // Elimina cualquier caracter que no sea dígito o punto (p. ej. zero-width, NBSP, etc.)
-          v = v.replaceAll('[^0-9\\.]', '')
+          v = v
+            .replaceAll('[^0-9]', '.')  // todo lo no dígito a punto (maneja guiones, comas, puntos raros)
+            .replaceAll('\\.+', '.')    // colapsa múltiples puntos en uno
+            .replaceAll('^\\.|\\.$', '') // quita punto inicial/final
+          echo "APP_VERSION normalizado='${v}'"
           if (v == 'latest') {
             error 'No se permite usar la etiqueta mutable latest'
           }
-          // Nota: en regex "slashy" de Groovy no se deben duplicar las barras: 
-          // usar ^\d+\.\d+\.\d+$ como /^\d+\.\d+\.\d+$/ provocaría fallo al buscar una barra invertida literal.
           if (!(v ==~ /^\d+\.\d+\.\d+$/)) {
-            error "APP_VERSION debe ser SemVer x.y.z (ej. 0.1.4). Valor recibido: ${params.APP_VERSION}"
+            error "APP_VERSION debe ser SemVer x.y.z (ej. 0.1.4). Recibido raw='${params.APP_VERSION}', normalizado='${v}'"
           }
-          echo "Usando APP_VERSION normalizado: ${v}"
           // Propaga la versión normalizada al entorno para el resto de stages
           env.APP_VERSION = v
         }
