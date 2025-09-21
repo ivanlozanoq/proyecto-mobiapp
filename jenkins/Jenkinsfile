@@ -86,8 +86,7 @@ EOF
         container('git') {
           sh '''
             echo "Actualizando ${CHART_VALUES} a tag ${APP_VERSION}"
-            # Reemplazo robusto evitando \s y barras invertidas problemáticas en Groovy
-            # Busca la línea con tag: "<algo>" y deja solo el nuevo valor
+            # Actualiza la línea con tag: "<valor>" en values.yaml
             sed -E -i "s|(tag:[[:space:]]*\")[^"]+(\")[[:space:]]*$|\\1${APP_VERSION}\\2|" ${CHART_VALUES}
             echo 'Preview del cambio:'
             grep -n -E 'repository:|tag:' ${CHART_VALUES} | sed -n '1,10p'
