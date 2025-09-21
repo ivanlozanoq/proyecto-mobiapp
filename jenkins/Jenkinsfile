@@ -17,11 +17,11 @@ spec:
           mountPath: /kaniko/.docker
       resources:
         requests:
-          cpu: "100m"
-          memory: "256Mi"
+          cpu: "50m"
+          memory: "192Mi"
         limits:
-          cpu: "500m"
-          memory: "512Mi"
+          cpu: "300m"
+          memory: "384Mi"
     - name: git
       image: alpine/git:2.46.0
       command:
