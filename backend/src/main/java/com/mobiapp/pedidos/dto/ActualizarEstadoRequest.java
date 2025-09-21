@@ -4,7 +4,7 @@ import com.mobiapp.pedidos.domain.EstadoPedido;
 import jakarta.validation.constraints.NotNull;
 
 public class ActualizarEstadoRequest {
-    @NotNull(message = "estado es requerido")
+    @NotNull(message = "estado no puede ser vacio")
     private EstadoPedido estado;
 
     public EstadoPedido getEstado() {
