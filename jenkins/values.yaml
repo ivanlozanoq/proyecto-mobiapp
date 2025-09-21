@@ -1,0 +1,25 @@
+# Declarative config for Bitnami Jenkins controller
+# This makes Jenkins controller resource settings reproducible via GitOps
+# and avoids ad-hoc helm --set changes.
+
+resources:
+  requests:
+    cpu: 200m
+    memory: 512Mi
+  limits:
+    cpu: 1
+    memory: 1536Mi  # 1.5Gi, mejora la fluidez de la UI sin sobrecargar el cluster
+
+persistence:
+  storageClass: do-block-storage
+  size: 8Gi
+
+# Para evitar errores de Multi-Attach del PVC, dejamos fijado temporalmente
+# el controller al nodo donde está actualmente el volumen adjunto.
+# Cuando quieras permitir que se mueva libremente, elimina este bloque.
+nodeSelector:
+  kubernetes.io/hostname: pool-ukzwzgl52-20mrr
+
+# Puedes añadir tolerations/affinity si deseas aislar Jenkins en un pool específico.
+# tolerations: []
+# affinity: {}
