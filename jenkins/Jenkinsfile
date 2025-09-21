@@ -130,6 +130,8 @@ EOF
             /kaniko/executor \
               --context $WORKSPACE \
               --dockerfile backend/Dockerfile \
+              --cache=false \
+              --reproducible \
               --destination ${IMAGE_REPO}:${APP_VERSION} \
               --cleanup
           '''
