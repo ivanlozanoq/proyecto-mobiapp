@@ -100,6 +100,8 @@ spec:
           }
           // Propaga la versión normalizada al entorno para el resto de stages
           env.APP_VERSION = v
+          // Capturamos el commit SHA actual para etiquetar la imagen (labels OCI)
+          env.GIT_SHA = sh(returnStdout: true, script: 'git rev-parse HEAD').trim()
         }
       }
     }
@@ -132,6 +134,8 @@ EOF
               --dockerfile backend/Dockerfile \
               --cache=false \
               --reproducible \
+              --build-arg GIT_SHA=${GIT_SHA} \
+              --build-arg APP_VERSION=${APP_VERSION} \
               --destination ${IMAGE_REPO}:${APP_VERSION} \
               --cleanup
           '''

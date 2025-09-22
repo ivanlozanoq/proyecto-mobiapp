@@ -1,6 +1,10 @@
 # Stage 1: Builder - compila el JAR usando el Gradle Wrapper del proyecto
 FROM eclipse-temurin:21-jdk AS builder
 
+# Metadata de build inyectada por CI
+ARG GIT_SHA="unknown"
+ARG APP_VERSION="unknown"
+
 WORKDIR /workspace
 
 # Copiamos solo lo necesario para que Gradle resuelva el proyecto multi-módulo
@@ -23,6 +27,14 @@ FROM eclipse-temurin:21-jre AS runtime
 
 WORKDIR /app
 COPY --from=builder /workspace/app.jar /app/app.jar
+
+# Labels OCI para verificar qué commit/versión corre en runtime
+ARG GIT_SHA="unknown"
+ARG APP_VERSION="unknown"
+LABEL org.opencontainers.image.revision=$GIT_SHA \
+      org.opencontainers.image.version=$APP_VERSION \
+      org.opencontainers.image.title="pedidos-api" \
+      org.opencontainers.image.source="https://github.com/ivanlozanoq/proyecto-mobiapp"
 
 EXPOSE 8080
 ENTRYPOINT ["java","-jar","/app/app.jar"]
