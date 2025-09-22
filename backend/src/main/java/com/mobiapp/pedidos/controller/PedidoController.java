@@ -26,10 +26,6 @@ public class PedidoController {
         return ResponseEntity.ok(creado);
     }
 
-    @GetMapping
-    public ResponseEntity<List<Pedido>> listar() {
-        return ResponseEntity.ok(pedidoService.listarTodos());
-    }
 
     @GetMapping("/{id}")
     public ResponseEntity<Pedido> obtener(@PathVariable String id) {
