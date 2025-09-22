@@ -16,14 +16,14 @@ La política de versionado es estrictamente SemVer (x.y.z). No se usan etiquetas
 ```mermaid
 flowchart LR
   Dev[Desarrollador] -->|push/PR| GitHub
-  subgraph CI/CD
+  subgraph CI_CD
     GitHub -->|webhook push a main| Jenkins
-    Jenkins -->|build kaniko (x.y.z)| DockerHub[(Docker Hub)]
-    Jenkins -->|bump values.yaml (x.y.z)| Repo[(Repo GitHub)]
-    Repo -->|watch main/path| ArgoCD
+    Jenkins -->|build kaniko x.y.z| DockerHub[Docker Hub]
+    Jenkins -->|bump values.yaml x.y.z| Repo[Repo GitHub]
+    Repo -->|watch main/path| ArgoCD[Argo CD]
   end
-  ArgoCD -->|sync| DO[Kubernetes DigitalOcean]
-  DO -->|Servicio/Ingress| Usuario[Cliente HTTP]
+  ArgoCD -->|sync| DOKS[Kubernetes DigitalOcean]
+  DOKS -->|Servicio/Ingress| Usuario[Cliente HTTP]
 ```
 
 ---
