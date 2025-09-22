@@ -106,6 +106,37 @@ spec:
       }
     }
 
+    // Etapa 2b: crea y empuja el tag Git del release (v${APP_VERSION}) apuntando a ${GIT_SHA}
+    stage('Crear tag Git del release') {
+      steps {
+        container('git') {
+          withCredentials([usernamePassword(credentialsId: 'github-credentials', usernameVariable: 'GIT_USER', passwordVariable: 'GIT_PASS')]) {
+            sh '''
+              set -e
+              cd "$WORKSPACE"
+              git config --global --add safe.directory "$WORKSPACE" || true
+              git config user.name "jenkins-bot"
+              git config user.email "jenkins-bot@local"
+
+              # Asegura el remote con PAT
+              git remote set-url origin https://github.com/ivanlozanoq/proyecto-mobiapp.git
+
+              # Crea el tag anotado si no existe; si ya existe, no falla
+              if ! git rev-parse -q --verify "refs/tags/v${APP_VERSION}" >/dev/null; then
+                git tag -a "v${APP_VERSION}" "${GIT_SHA}" -m "release v${APP_VERSION}"
+                echo "Tag v${APP_VERSION} creado en ${GIT_SHA}"
+              else
+                echo "Tag v${APP_VERSION} ya existe; se reutiliza"
+              fi
+
+              # Empuja el tag usando x-access-token
+              git push https://x-access-token:${GIT_PASS}@github.com/ivanlozanoq/proyecto-mobiapp.git "refs/tags/v${APP_VERSION}:refs/tags/v${APP_VERSION}"
+            '''
+          }
+        }
+      }
+    }
+
     // Etapa 2: escribe /kaniko/.docker/config.json con el token de Docker Hub (para push)
     stage('Configurar credenciales Docker para Kaniko') {
       steps {
