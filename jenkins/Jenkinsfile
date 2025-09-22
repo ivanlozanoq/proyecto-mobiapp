@@ -72,8 +72,8 @@ spec:
           sh 'git config --global --add safe.directory "$WORKSPACE" || true'
           def logs = sh(returnStdout: true, script: 'git log -5 --pretty=%B').trim()
           echo "Últimos mensajes de commit (recortados): ${logs.take(200)}..."
-          def m = (logs =~ /release\/(\d+\.\d+\.\d+)/)
-          def vDerived = m.find() ? m.group(1) : ''
+          // Evita usar java.util.regex.Matcher (no serializable en CPS). Usa grep/sed en shell.
+          def vDerived = sh(returnStdout: true, script: "git log -5 --pretty=%B | grep -oE 'release/[0-9]+\\.[0-9]+\\.[0-9]+' | head -n1 | sed 's#release/##' || true").trim()
           if (vDerived) {
             echo "APP_VERSION derivado de commits: ${vDerived}"
           } else {
